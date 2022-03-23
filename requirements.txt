@@ -25,7 +25,7 @@ pathspec==0.9.0
 pkg_resources==0.0.0
 platformdirs==2.5.1
 pluggy==1.0.0
--e git+https://github.com/wayglem/pubmed-pelias-client.git@7a480f25042dc01aedcde5bb88d4b3830e8a48ce#egg=pubmed_pelias_client
+-e git+https://github.com/wayglem/pubmed-pelias-client.git@4bd07110255ca1f29abb09bf8c49306624ba52c2#egg=pubmed_pelias_client
 py==1.11.0
 pycodestyle==2.8.0
 pyflakes==2.4.0
@@ -38,6 +38,8 @@ pyyaml_env_tag==0.1
 requests==2.27.1
 six==1.16.0
 tomli==2.0.1
+types-requests==2.27.14
+types-urllib3==1.26.11
 typing_extensions==4.1.1
 urllib3==1.26.9
 watchdog==2.1.6
