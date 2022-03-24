@@ -74,23 +74,41 @@ def main() -> None:  # pragma: no cover
                 pmid = row[1]
                 print(f"PMID {pmid} affiliations")
                 affiliations = row[2].split(";")
-                index = 0  # FIXME: currently only parsing first affiliation
-                affiliation = affiliations[index]
-                if affiliation.lower() == "nowhere":
-                    # A lot of record contains nowhere just ignore them FIXME: better handling is required
-                    continue
-                result: GeoResult = bingGeocoder.geocode(pmid, affiliation, index)
-                outputWriter.writerow(
-                    [
-                        result.pmid,
-                        result.affiliation,
-                        result.affiliationIndex,
-                        result.lat,
-                        result.lng,
-                        result.confidence,
-                    ]
-                )
-                print(f"{affiliation} geocodeResult = {result}")
+                searchedAffiliation = []
+                for index in range(0, len(affiliations)):
+                    result: GeoResult
+                    affiliation = affiliations[index].strip()
+                    cachedResult = next(
+                        (
+                            element
+                            for element in searchedAffiliation
+                            if element["affiliation"] == affiliation
+                        ),
+                        None,
+                    )
+                    if affiliation.lower() == "nowhere":
+                        # A lot of record contains nowhere just ignore them FIXME: better handling is required
+                        continue
+                    if cachedResult != None:
+                        result = cachedResult["result"]
+                    else:
+                        result: GeoResult = bingGeocoder.geocode(
+                            pmid, affiliation, index
+                        )
+                        searchedAffiliation.append(
+                            {"affiliation": affiliation, "result": result}
+                        )
+                        outputWriter.writerow(
+                            [
+                                result.pmid,
+                                result.affiliation,
+                                result.affiliationIndex,
+                                result.lat,
+                                result.lng,
+                                result.confidence,
+                            ]
+                        )
+                        print(f"{affiliation} geocodeResult = {result}")
                 # return  # uncomment for testing only one.
 
     print("End of main function")
