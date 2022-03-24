@@ -21,8 +21,7 @@ python -m pubmed_pelias_client --bing_key=bingapikey-xxxx data/last_20.csv
 
 ## TODO
 
-- save results to csv file
-- cache geocoded results to a sqlite db for example
+- cache geocoded results in a sqlite db for example
 - Better nowhere filtering
 - iterate through affiliations
 - add verbose logs (every 1000 lines for example)

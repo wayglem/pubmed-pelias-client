@@ -130,3 +130,6 @@ dmypy.json
 
 # templates
 .github/templates/*
+
+# project working files
+output.csv

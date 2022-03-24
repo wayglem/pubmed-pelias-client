@@ -32,6 +32,13 @@ def main() -> None:  # pragma: no cover
         default="ge-xxx",
     )
     parser.add_argument(
+        "--output_file",
+        required=False,
+        type=str,
+        help="path for csv outputfile",
+        default="output.csv",
+    )
+    parser.add_argument(
         "inputFile",
         type=str,
         help="Path to the input file",
@@ -48,26 +55,43 @@ def main() -> None:  # pragma: no cover
     bingKey = args.bing_key
     # geocodeEarthKey = args.geocode_earth_key
 
+    outputFile = args.output_file
+
     if args.verbose:
         print("Verbose mode is on.")
 
     print("Start reading file")
-    with open(args.inputFile, newline="") as csvfile:
-        bingGeocoder = bingMapsGeocoder.BingMapsGeocoder(bingKey)
-        inputFileReader = csv.reader(csvfile, delimiter=",")
+    with open(outputFile, "w", newline="") as csvfile:
+        outputWriter = csv.writer(csvfile, delimiter=";", quoting=csv.QUOTE_NONNUMERIC)
+        outputWriter.writerow(
+            ["PMID", "affiliation", "affiliation_index", "lat", "lng", "confidence"]
+        )
+        with open(args.inputFile, newline="") as csvfile:
+            bingGeocoder = bingMapsGeocoder.BingMapsGeocoder(bingKey)
+            inputFileReader = csv.reader(csvfile, delimiter=",")
 
-        for row in inputFileReader:
-            pmid = row[1]
-            print(f"PMID {pmid} affiliations")
-            affiliations = row[2].split(";")
-            index = 0  # FIXME: currently only parsing first affiliation
-            affiliation = affiliations[index]
-            if affiliation.lower() == "nowhere":
-                # A lot of record contains nowhere just ignore them FIXME: better handling is required
-                continue
-            result: GeoResult = bingGeocoder.geocode(pmid, affiliation, index)
-            print(f"{affiliation} geocodeResult = {result}")
-            # return # uncomment for testing only one.
+            for row in inputFileReader:
+                pmid = row[1]
+                print(f"PMID {pmid} affiliations")
+                affiliations = row[2].split(";")
+                index = 0  # FIXME: currently only parsing first affiliation
+                affiliation = affiliations[index]
+                if affiliation.lower() == "nowhere":
+                    # A lot of record contains nowhere just ignore them FIXME: better handling is required
+                    continue
+                result: GeoResult = bingGeocoder.geocode(pmid, affiliation, index)
+                outputWriter.writerow(
+                    [
+                        result.pmid,
+                        result.affiliation,
+                        result.affiliationIndex,
+                        result.lat,
+                        result.lng,
+                        result.confidence,
+                    ]
+                )
+                print(f"{affiliation} geocodeResult = {result}")
+                # return  # uncomment for testing only one.
 
     print("End of main function")
 

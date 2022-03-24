@@ -15,5 +15,5 @@ def test_parser():
     assert geocode.confidence == Confidence.HIGH
     assert geocode.lat == 51.509521484375
     assert geocode.lng == -0.0763700008392334
-    assert geocode.index == 1
+    assert geocode.affiliationIndex == 1
     assert geocode.affiliation == "expected_affiliation"

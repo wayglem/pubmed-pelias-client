@@ -9,7 +9,7 @@ class GeoResult:
     lat: float
     lng: float
     confidence: "Confidence"
-    index: int
+    affiliationIndex: int
 
 
 class Confidence(Enum):
