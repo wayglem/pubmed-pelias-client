@@ -1,11 +1,13 @@
 import argparse
 
 from pubmed_pelias_client import bingMapsGeocoder
-from pubmed_pelias_client.geoResult import GeoResult
+from pubmed_pelias_client.geoResult import GeoResult, Confidence
 
+import unicodedata
 import csv
 import requests
 import json
+import re
 
 
 def main() -> None:  # pragma: no cover
@@ -72,12 +74,15 @@ def main() -> None:  # pragma: no cover
 
             for row in inputFileReader:
                 pmid = row[1]
-                print(f"PMID {pmid} affiliations")
+                if args.verbose:
+                    print(f"PMID {pmid} affiliations")
                 affiliations = row[2].split(";")
                 searchedAffiliation = []
                 for index in range(0, len(affiliations)):
                     result: GeoResult
-                    affiliation = affiliations[index].strip()
+                    affiliation = sanitizeAffiliation(affiliations[index])
+                    if args.verbose:
+                        print(f"{affiliation[index]} was sanitized to {affiliation}")
                     cachedResult = next(
                         (
                             element
@@ -86,10 +91,12 @@ def main() -> None:  # pragma: no cover
                         ),
                         None,
                     )
-                    if affiliation.lower() == "nowhere":
-                        # A lot of record contains nowhere just ignore them FIXME: better handling is required
-                        continue
-                    if cachedResult != None:
+                    if affiliation == "nowhere":
+                        # A lot of record contains nowhere just ignore them
+                        result = GeoResult(
+                            pmid, affiliation, 0, 0, Confidence.NO_RESULT, index
+                        )
+                    elif cachedResult != None:
                         result = cachedResult["result"]
                     else:
                         result: GeoResult = bingGeocoder.geocode(
@@ -105,13 +112,28 @@ def main() -> None:  # pragma: no cover
                                 result.affiliationIndex,
                                 result.lat,
                                 result.lng,
-                                result.confidence,
+                                result.confidence.value,
                             ]
                         )
-                        print(f"{affiliation} geocodeResult = {result}")
+                        if args.verbose:
+                            print(f"{affiliation} geocodeResult = {result}")
                 # return  # uncomment for testing only one.
 
-    print("End of main function")
+    print("Finished reading input file")
+
+
+def sanitizeAffiliation(affiliation: str) -> str:
+    affiliation = (
+        unicodedata.normalize("NFD", affiliation)
+        .encode("ascii", "ignore")
+        .decode("ascii")
+    )  # "transform" non ascii chars to ascii
+    affiliation = affiliation.lower()  # lower case
+    affiliation = re.sub(
+        "[^A-Za-z0-9]+", " ", affiliation
+    )  # remove all non alphanumerical chars
+    affiliation = affiliation.strip()  # remove whitespaces
+    return affiliation
 
 
 def call_pelias(
